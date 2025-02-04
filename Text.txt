@@ -1,0 +1,40 @@
+const fs = require('fs');
+const { PDFDocument } = require('pdf-lib');
+
+async function mergePDFs(pdfPath1, pdfPath2, outputPath) {
+    try {
+        // Load the first PDF
+        const pdf1Bytes = fs.readFileSync(pdfPath1);
+        const pdf1Doc = await PDFDocument.load(pdf1Bytes);
+
+        // Load the second PDF
+        const pdf2Bytes = fs.readFileSync(pdfPath2);
+        const pdf2Doc = await PDFDocument.load(pdf2Bytes);
+
+        // Create a new PDF document
+        const mergedPdf = await PDFDocument.create();
+
+        // Copy pages from first PDF
+        const copiedPages1 = await mergedPdf.copyPages(pdf1Doc, pdf1Doc.getPageIndices());
+        copiedPages1.forEach((page) => mergedPdf.addPage(page));
+
+        // Copy pages from second PDF
+        const copiedPages2 = await mergedPdf.copyPages(pdf2Doc, pdf2Doc.getPageIndices());
+        copiedPages2.forEach((page) => mergedPdf.addPage(page));
+
+        // Save the merged PDF
+        const mergedPdfBytes = await mergedPdf.save();
+        fs.writeFileSync(outputPath, mergedPdfBytes);
+
+        console.log(`Merged PDF saved as: ${outputPath}`);
+    } catch (error) {
+        console.error("Error merging PDFs:", error);
+    }
+}
+
+// Specify file names
+const pdf1 = 'sangi.pdf';
+const pdf2 = 'mangi.pdf';
+const outputPdf = 'merged.pdf';
+
+mergePDFs(pdf1, pdf2, outputPdf);
